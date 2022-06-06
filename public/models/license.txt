@@ -1,0 +1,11 @@
+Model Information:
+* title:	Sneaker
+* source:	https://sketchfab.com/3d-models/sneaker-4cc5b5a2fd54454182f14c5e80782287
+* author:	Aquateknica (https://sketchfab.com/aquateknica)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Sneaker" (https://sketchfab.com/3d-models/sneaker-4cc5b5a2fd54454182f14c5e80782287) by Aquateknica (https://sketchfab.com/aquateknica) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
