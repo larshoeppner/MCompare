@@ -1,5 +1,4 @@
 <script lang="ts">
-	export let name: string;
 	import { onMount } from "svelte";
 	import {
 		Scene,
@@ -16,6 +15,7 @@
 	import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 	import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 	import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+	import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 
 	onMount(async () => {
 		createScene();
@@ -26,6 +26,7 @@
 	let camera: PerspectiveCamera;
 	let renderer: WebGLRenderer;
 
+	// TODO move all to ts classes
 	function createScene() {
 		scene = new Scene();
 		scene.background = new Color(0xd3d3d3);
@@ -83,14 +84,37 @@
 		renderer.render(scene, camera);
 	}
 
+	function centerAlign(mroot) {
+		var bbox = new Box3().setFromObject(mroot);
+		var cent = bbox.getCenter(new Vector3());
+		var size = bbox.getSize(new Vector3());
+
+		// Rescale the object to normalized space
+		var maxAxis = Math.max(size.x, size.y, size.z);
+		mroot.scale.multiplyScalar(5.0 / maxAxis);
+		bbox.setFromObject(mroot);
+		bbox.getCenter(cent);
+		bbox.getSize(size);
+		// Reposition to 0,halfY,0
+		mroot.position.copy(cent).multiplyScalar(-1);
+		mroot.position.y -= size.y * 0.5;
+
+		function animate() {
+			requestAnimationFrame(animate);
+			// gltf.scene.rotation.y += 0.005;
+			renderer.render(scene, camera);
+		}
+		animate();
+	}
+
 	let currentUrl = "";
-	function importModel() {
+	function importGltf() {
 		// get url from input
 
 		// Load a glTF resource
 		loader.load(
 			// resource URL
-			url,
+			gltfUrl,
 			// called when the resource is loaded
 			function (gltf) {
 				scene.add(gltf.scene);
@@ -101,27 +125,7 @@
 				gltf.cameras; // Array<THREE.Camera>
 				gltf.asset; // Object
 
-				var mroot = gltf.scene;
-				var bbox = new Box3().setFromObject(mroot);
-				var cent = bbox.getCenter(new Vector3());
-				var size = bbox.getSize(new Vector3());
-
-				// Rescale the object to normalized space
-				var maxAxis = Math.max(size.x, size.y, size.z);
-				mroot.scale.multiplyScalar(5.0 / maxAxis);
-				bbox.setFromObject(mroot);
-				bbox.getCenter(cent);
-				bbox.getSize(size);
-				// Reposition to 0,halfY,0
-				mroot.position.copy(cent).multiplyScalar(-1);
-				mroot.position.y -= size.y * 0.5;
-
-				function animate() {
-					requestAnimationFrame(animate);
-					// gltf.scene.rotation.y += 0.005;
-					renderer.render(scene, camera);
-				}
-				animate();
+				centerAlign(gltf.scene);
 			},
 			// called while loading is progressing
 			function (xhr) {
@@ -134,16 +138,47 @@
 		);
 	}
 
-	let url = "http://localhost:8080/models/scene.gltf";
+	let gltfUrl = "http://localhost:8080/models/scene.gltf";
+
+	let objUrl = "";
+
+	function importObj() {
+		const loader = new OBJLoader();
+
+		// load a resource
+		loader.load(
+			// resource URL
+			objUrl,
+			// called when resource is loaded
+			function (object) {
+				scene.add(object);
+				centerAlign(object);
+			},
+			// called when loading is in progresses
+			function (xhr) {
+				console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+			},
+			// called when loading has errors
+			function (error) {
+				console.log("An error happened");
+			}
+		);
+	}
 </script>
 
 <main>
 	<div>
 		<div>
-			<button class="btn btn-active" on:click={() => importModel()}>
-				Load Model
+			<button class="btn btn-active" on:click={() => importGltf()}>
+				Load GLTF
 			</button>
-			<input id="modelurl" bind:value={url} />
+			<input id="modelurl" bind:value={gltfUrl} />
+		</div>
+		<div>
+			<button class="btn btn-active" on:click={() => importObj()}>
+				Load OBJ
+			</button>
+			<input id="modelurl" bind:value={objUrl} />
 		</div>
 	</div>
 	<div id="scenecontainer" />
